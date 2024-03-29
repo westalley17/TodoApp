@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <title>To Do App</title>
+</head>
+
+<body>
+    <div class="d-flex col-12 justify-content-center align-items-center vh-100">
+        <div class="col-6 col-md-5 col-lg-5 bg-light card" id="divToDo">
+            <div class="card-header bg-primary">
+                <h1 class="text-white">TODO</h1>
+            </div>
+            <div class="card-body text-dark">
+                <div id="divList" class="col-8">
+
+                </div>
+                <button info="ToDo" type="button" class="btnToggleAdd btn btn-lg btn-info col-8 offset-2 mb-1">Add New
+                    Task</button>
+            </div>
+        </div>
+        <div class="col-md-8 col-md-7 col-lg-7 bg-light card" id="divNewInputs" style="display: none; z-index: 1;">
+            <div class="card-header bg-primary">
+                <h3>Add a new task</h3>
+            </div>
+            <div class="card-body">
+                <form>
+                    <label for="txtTaskName" class="form-label">Task Name</label>
+                    <input id="txtTaskName" class="form-control" required="true">
+                    <label for="txtDueDate" class="form-label">Due Date</label>
+                    <input id="txtDueDate" class="form-control" required="true">
+                    <label for="txtLocation" class="form-label">Location</label>
+                    <input id="txtLocation" class="form-control" required="true">
+                    <label for="txtInstructions" class="form-label">Instructions</label>
+                    <input id="txtInstructions" class="form-control" required="true">
+                    <label for="txtStatus" class="form-label">Status</label>
+                    <input id="txtStatus" class="form-control" required="true">
+                    <button id="btnAddItem" type="button" class="btn btn-lg btn-success col-8 offset-2 mt-2">Add
+                        Task</button>
+                    <button info="NewInputs" type="button"
+                        class="btnToggleAdd btn btn-lg btn-info col-8 offset-2 mt-1">View
+                        Tasks</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    let strRemoveTask = '<button id="btnRemoveItem" type="button" class="btn btn-lg btn-danger col-12 mb-1">Remove Task</button>'
+
+    $('.btnToggleAdd').on('click', function () {
+        if ($(this).attr('info') == 'ToDo') {
+            $('#divToDo').slideUp(() => {
+                $('#divNewInputs').slideDown()
+            })
+        }
+        else {
+            $('#divNewInputs').slideUp(() => {
+                $('#divToDo').slideDown()
+            })
+        }
+    })
+
+    $('#btnAddItem').on('click', () => {
+        let strTaskName = $('#txtTaskName').val()
+        let strDueDate = $('#txtDueDate').val()
+        let strLocation = $('#txtLocation').val()
+        let strInstructions = $('#txtInstructions').val()
+        let strStatus = $('#txtStatus').val()
+        $.ajax({
+            url: 'http://localhost:8000/task',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                TaskName: strTaskName, DueDate: strDueDate, Location: strLocation, Instructions: strInstructions, Status: strStatus
+            }),
+            success: function (result) {
+                let task = result.task
+                let strHTML = '<div class="card"><div class="card-body"><span>' + task.TaskName + '</span><span>' + task.DueDate + '</span><span>' + task.Location + '</span><span>' + task.Instructions + '</span><span>' + task.Status + '</span><span>' + task.TaskID + '</span>' + strRemoveTask + '</div></div>'
+                $('#divList').append(strHTML)
+                Swal.fire({
+                    text: 'Succesfully added task!',
+                    title: 'Success!',
+                    icon: 'success'
+                })
+            },
+            error: function (result) {
+                Swal.fire({
+                    text: result.error,
+                    title: 'Error adding task!',
+                    icon: 'error'
+                })
+            }
+        })
+    })
+</script>
+
+</html>
