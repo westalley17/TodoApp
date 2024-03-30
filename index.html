@@ -8,23 +8,24 @@
     <title>To Do App</title>
 </head>
 
-<body>
+<body class="bg-dark">
     <div class="d-flex col-12 justify-content-center align-items-center vh-100">
         <div class="col-6 col-md-5 col-lg-5 bg-light card" id="divToDo">
-            <div class="card-header bg-primary">
+            <div class="card-header bg-primary justify-content-center d-flex">
                 <h1 class="text-white">TODO</h1>
             </div>
             <div class="card-body text-dark">
-                <div id="divList" class="col-8">
+                <div id="divList" class="col-8 offset-2">
 
                 </div>
-                <button info="ToDo" type="button" class="btnToggleAdd btn btn-lg btn-info col-8 offset-2 mb-1">Add New
+                <button info="ToDo" type="button" class="btnToggleAdd btn btn-lg btn-info col-8 offset-2 mb-1 mt-1">Add
+                    New
                     Task</button>
             </div>
         </div>
-        <div class="col-md-8 col-md-7 col-lg-7 bg-light card" id="divNewInputs" style="display: none; z-index: 1;">
+        <div class="col-md-8 col-md-7 col-lg-7 bg-light card" id="divNewInputs" style="display: none">
             <div class="card-header bg-primary">
-                <h3>Add a new task</h3>
+                <h3 class="text-white justify-content-center d-flex">Add a new task</h3>
             </div>
             <div class="card-body">
                 <form>
@@ -52,7 +53,28 @@
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    let strRemoveTask = '<button id="btnRemoveItem" type="button" class="btn btn-lg btn-danger col-12 mb-1">Remove Task</button>'
+    let strRemoveTaskBtn = '<button id="btnRemoveItem" type="button" class="btn btn-sm btn-danger">Remove Task</button>'
+    let strChangeStatusBtn = '<button id="btnChangeStatus" type="button" class="btn btn-sm btn-success">Change Status</button>'
+
+    $.ajax({
+        url: 'http://localhost:8000/task',
+        type: 'GET',
+        success: (result) => {
+            let tasks = result.tasks
+            if (tasks) {
+                tasks.forEach(task => {
+                    let strHTML = '<div class="card" data-info="' + task.TaskID + '"><div class="card-header bg-warning"><h4 class="d-flex justify-content-center text-black">'
+                        + task.TaskName + '</h4></div><div class="card-body"><h5>Due: ' + task.DueDate + '</h5><h5>Where: ' + task.Location + '</h5><h5>Instructions: '
+                        + task.Instructions + '</h5><h5>Status: ' + task.Status + '</h5></div><div class="card-footer btn-group" role="group">'
+                        + strRemoveTaskBtn + strChangeStatusBtn + '</div></div>'
+                    $('#divList').append(strHTML)
+                })
+            }
+        },
+        error: (result) => {
+            console.log(result.message)
+        }
+    })
 
     $('.btnToggleAdd').on('click', function () {
         if ($(this).attr('info') == 'ToDo') {
@@ -82,11 +104,14 @@
             }),
             success: function (result) {
                 let task = result.task
-                let strHTML = '<div class="card"><div class="card-body"><span>' + task.TaskName + '</span><span>' + task.DueDate + '</span><span>' + task.Location + '</span><span>' + task.Instructions + '</span><span>' + task.Status + '</span><span>' + task.TaskID + '</span>' + strRemoveTask + '</div></div>'
+                let strHTML = '<div class="card" data-info="' + task.TaskID + '"><div class="card-header bg-warning"><h4 class="d-flex justify-content-center text-black">'
+                    + task.TaskName + '</h4></div><div class="card-body"><h5>Due: ' + task.DueDate + '</h5><h5>Where: ' + task.Location + '</h5><h5>Instructions: '
+                    + task.Instructions + '</h5><h5>Status: ' + task.Status + '</h5></div><div class="card-footer btn-group" role="group">'
+                    + strRemoveTaskBtn + strChangeStatusBtn + '</div></div>'
                 $('#divList').append(strHTML)
                 Swal.fire({
                     text: 'Succesfully added task!',
-                    title: 'Success!',
+                    title: result.message,
                     icon: 'success'
                 })
             },
@@ -99,6 +124,62 @@
             }
         })
     })
+
+    $(document).ready(() => {
+        $('#divList').on('click', '#btnRemoveItem', (event) => {
+            let strTaskID = $(event.currentTarget).parent().parent().attr('data-info')
+            $.ajax({
+                url: 'http://localhost:8000/task',
+                type: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({ TaskID: strTaskID }),
+                success: (result) => {
+                    Swal.fire({
+                        title: 'Successfully deleted task!',
+                        text: result.message,
+                        icon: 'success'
+                    })
+                },
+                error: (result) => {
+                    Swal.fire({
+                        title: 'Error deleting task!',
+                        text: result.message,
+                        icon: 'error'
+                    })
+                }
+            })
+            $(event.currentTarget).parent().parent().parent().remove()
+        })
+    })
+
+    $(document).ready(() => {
+        $('#divList').on('click', '#btnChangeStatus', (event) => {
+            let strTaskID = $(event.currentTarget).parent().parent().attr('data-info')
+            $.getJSON('http://localhost:8000/status?TaskID=' + strTaskID, (result) => {
+                $.ajax({
+                    url: 'http://localhost:8000/task',
+                    type: 'PATCH',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ TaskID: strTaskID, Status: result.status }),
+                    success: (result) => {
+                        Swal.fire({
+                            title: 'Updated status!',
+                            text: result.message,
+                            icon: 'success'
+                        })
+                    },
+                    error: (result) => {
+                        Swal.fire({
+                            title: 'Error updating status!',
+                            text: result.message,
+                            icon: 'error'
+                        })
+                    }
+                })
+            })
+        })
+    })
+
 </script>
 
 </html>

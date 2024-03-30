@@ -7,6 +7,7 @@ const db = new sqlite3.Database(dbSource)
 const HTTP_PORT = 8000
 
 var app = express()
+app.use(express.json())
 app.use(cors())
 
 class Task {
@@ -21,7 +22,6 @@ class Task {
 }
 
 app.post('/task', (req, res) => {
-    
     let TaskName = req.body.TaskName
     let DueDate = req.body.DueDate
     let Location = req.body.Location
@@ -34,10 +34,10 @@ app.post('/task', (req, res) => {
         let arrTaskVal = [TaskName, DueDate, Location, Instructions, Status, TaskID]
         db.run(`INSERT INTO tblTasks values (?, ?, ?, ?, ?, ?)`, arrTaskVal, (err) => {
             if(err) {
-                res.status(400).json({error: err.message})
+                res.status(400).json({message: err.message})
             }
             else {
-                res.status(201).json({message: "success", task: newTask})
+                res.status(201).json({message: "Success!", task: newTask})
             }
         })
     }
@@ -47,22 +47,41 @@ app.get('/task', (req, res) => {
     let strCommand = 'SELECT * FROM tblTasks'
     db.all(strCommand, (err, rows) => {
         if(err) {
-            res.status(400).json({error: err.message})
+            res.status(400).json({message: err.message})
         }
         else {
-            res.status(200).json({message:"success", tasks:rows})
+            res.status(200).json({message:"Success!", tasks:rows})
+        }
+    })
+})
+
+app.get('/status', (req, res) => {
+    let strTaskID = req.query.TaskID
+    let strCommand = 'SELECT Status FROM tblTasks WHERE TaskID = ?'
+    db.get(strCommand, strTaskID, (err, response) => {
+        console.log(response)
+        if(err) {
+            res.status(400).json({message: err.message})
+        }
+        else {
+            if(response.Status == 'Incomplete') {
+                res.status(200).json({message:"Success!", status: 'Complete'})
+            }
+            else {
+                res.status(200).json({message:"Success!", status: 'Incomplete'})
+            }
         }
     })
 })
 
 app.patch('/task', (req, res) => {
     let taskID = req.body.TaskID
-    let newStatus = req.body.Status
-    if(taskID && newStatus) {
+    let status = req.body.Status
+    if(taskID && status) {
         let strCommand = 'UPDATE tblTasks SET Status = ? WHERE TaskID = ?'
-        db.run(strCommand, [newStatus, taskID], (err) => {
+        db.run(strCommand, [status, taskID], (err) => {
             if(err) {
-                res.status(400).json({error: err.message})
+                res.status(400).json({message: err.message})
             }
             else {
                 res.status(200).json({message: "Status Updated!"})
@@ -72,11 +91,11 @@ app.patch('/task', (req, res) => {
 })
 
 app.delete('/task', (req, res) => {
-    let taskID = req.query.TaskID
+    let taskID = req.body.TaskID
     if(taskID) {
         db.run('DELETE FROM tblTasks WHERE TaskID = ?', [taskID], (err) => {
             if(err) {
-                res.status(400).json({error: err.message})
+                res.status(400).json({message: err.message})
             }
             else {
                 res.status(200).json({message: 'Task Deleted!'})
