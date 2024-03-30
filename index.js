@@ -59,7 +59,6 @@ app.get('/status', (req, res) => {
     let strTaskID = req.query.TaskID
     let strCommand = 'SELECT Status FROM tblTasks WHERE TaskID = ?'
     db.get(strCommand, strTaskID, (err, response) => {
-        console.log(response)
         if(err) {
             res.status(400).json({message: err.message})
         }
