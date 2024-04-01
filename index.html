@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/status.toggle.css" rel="stylesheet">
     <title>To Do App</title>
 </head>
 
@@ -51,8 +52,8 @@
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    let strRemoveTaskBtn = '<button id="btnRemoveItem" type="button" class="btn btn-sm btn-danger">Remove Task</button>'
-    let strChangeStatusBtn = '<button id="btnChangeStatus" type="button" class="btn btn-sm btn-success">Change Status</button>'
+    let strRemoveTaskBtn = '<button id="btnRemoveItem" type="button" class="btn btn-sm btn-danger col-6 offset-3">Remove Task</button>'
+    let strChangeStatusBtn = '<label class="container"><input type="checkbox"><div class="checkmark"></div></label>'
 
     $.ajax({
         url: 'http://localhost:8000/task',
@@ -61,10 +62,11 @@
             let tasks = result.tasks
             if (tasks) {
                 tasks.forEach(task => {
-                    let strHTML = '<div class="card mb-1" data-info="' + task.TaskID + '"><div class="card-header bg-warning"><h4 class="d-flex justify-content-center text-black">'
-                        + task.TaskName + '</h4></div><div class="card-body"><h5>Due: ' + task.DueDate + '</h5><h5>Where: ' + task.Location + '</h5><h5>Instructions: '
-                        + task.Instructions + '</h5><h5 id="txtStatusInfo' + task.TaskID + '">Status: ' + task.Status + '</h5></div><div class="card-footer btn-group" role="group">'
-                        + strRemoveTaskBtn + strChangeStatusBtn + '</div></div>'
+                    let strHTML = '<div class="card mb-1" data-info="' + task.TaskID
+                        + '"><div class="card-header bg-warning"><h4 class="d-flex justify-content-center text-black">'
+                        + task.TaskName + '</h4></div><div class="card-body"><h5><strong>Due: </strong> ' + task.DueDate + '</h5><h5><strong>Where: </strong> '
+                        + task.Location + '</h5><h5><strong>Instructions: </strong> ' + task.Instructions + '</h5><h5 id="txtStatusInfo' + task.TaskID
+                        + '"><strong>Status</strong></h5>' + strChangeStatusBtn + '</div><div class="card-footer">' + strRemoveTaskBtn + '</div></div>'
                     $('#divList').append(strHTML)
                 })
             }
@@ -101,10 +103,11 @@
             }),
             success: function (result) {
                 let task = result.task
-                let strHTML = '<div class="card mb-1" data-info="' + task.TaskID + '"><div class="card-header bg-warning"><h4 class="d-flex justify-content-center text-black">'
-                    + task.TaskName + '</h4></div><div class="card-body"><h5>Due: ' + task.DueDate + '</h5><h5>Where: ' + task.Location + '</h5><h5>Instructions: '
-                    + task.Instructions + '</h5><h5 id="txtStatusInfo' + task.TaskID + '">Status: ' + task.Status + '</h5></div><div class="card-footer btn-group" role="group">'
-                    + strRemoveTaskBtn + strChangeStatusBtn + '</div></div>'
+                let strHTML = '<div class="card mb-1" data-info="' + task.TaskID
+                    + '"><div class="card-header bg-warning"><h4 class="d-flex justify-content-center text-black">'
+                    + task.TaskName + '</h4></div><div class="card-body"><h5><strong>Due: </strong> ' + task.DueDate + '</h5><h5><strong>Where: </strong> '
+                    + task.Location + '</h5><h5><strong>Instructions: </strong> ' + task.Instructions + '</h5><h5 id="txtStatusInfo' + task.TaskID
+                    + '"><strong>Status</strong></h5>' + strChangeStatusBtn + '</div><div class="card-footer">' + strRemoveTaskBtn + '</div></div>'
                 $('#divList').append(strHTML)
                 Swal.fire({
                     text: 'Succesfully added task!',
