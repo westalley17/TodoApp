@@ -11,7 +11,7 @@
 
 <body class="bg-dark">
     <div class="d-flex col-12 justify-content-center align-items-center">
-        <div class="col-6 col-md-5 col-lg-5 bg-light card mt-2" id="divToDo">
+        <div class="col-lg-8 col-sm-8 bg-light card mt-2" id="divToDo">
             <div class="card-header bg-primary justify-content-center d-flex">
                 <h1 class="text-white">TODO</h1>
             </div>
@@ -24,7 +24,7 @@
                     Task</button>
             </div>
         </div>
-        <div class="col-md-8 col-md-7 col-lg-7 bg-light card mt-2" id="divNewInputs" style="display: none">
+        <div class="col-lg-8 col-sm-8 bg-light card mt-2" id="divNewInputs" style="display: none">
             <div class="card-header bg-primary">
                 <h3 class="text-white justify-content-center d-flex">Add a new task</h3>
             </div>
@@ -52,29 +52,34 @@
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    let strRemoveTaskBtn = '<button id="btnRemoveItem" type="button" class="btn btn-sm btn-danger col-6 offset-3">Remove Task</button>'
-    let strChangeStatusBtn = '<label class="container"><input type="checkbox"><div class="checkmark"></div></label>'
+    let strRemoveTaskBtn = '<button type="button" class="btnRemoveItem btn btn-sm btn-danger col-6 offset-3">Remove Task</button>'
+    let strChangeStatusBtn = '<label class="container"><input type="checkbox" class="btnChangeStatus"><div class="checkmark"></div></label>'
 
     $.ajax({
         url: 'http://localhost:8000/task',
         type: 'GET',
         success: (result) => {
-            let tasks = result.tasks
+            let tasks = result.tasks;
             if (tasks) {
                 tasks.forEach(task => {
                     let strHTML = '<div class="card mb-1" data-info="' + task.TaskID
                         + '"><div class="card-header bg-warning"><h4 class="d-flex justify-content-center text-black">'
                         + task.TaskName + '</h4></div><div class="card-body"><h5><strong>Due: </strong> ' + task.DueDate + '</h5><h5><strong>Where: </strong> '
                         + task.Location + '</h5><h5><strong>Instructions: </strong> ' + task.Instructions + '</h5><h5 id="txtStatusInfo' + task.TaskID
-                        + '"><strong>Status</strong></h5>' + strChangeStatusBtn + '</div><div class="card-footer">' + strRemoveTaskBtn + '</div></div>'
-                    $('#divList').append(strHTML)
-                })
+                        + '"><strong>Status</strong></h5>' + strChangeStatusBtn + '</div><div class="card-footer">' + strRemoveTaskBtn + '</div></div>';
+                    $('#divList').append(strHTML);
+
+                    // Set checkbox state based on task status
+                    let $checkbox = $('div[data-info="' + task.TaskID + '"]').find('input[type="checkbox"]');
+                    $checkbox.prop('checked', task.Status === 'Complete');
+                });
             }
         },
         error: (result) => {
-            console.log(result.message)
+            console.log(result.message);
         }
-    })
+    });
+
 
     $('.btnToggleAdd').on('click', function () {
         if ($(this).attr('info') == 'ToDo') {
@@ -127,8 +132,8 @@
     })
 
     $(document).ready(() => {
-        $('#divList').on('click', '#btnRemoveItem', (event) => {
-            let strTaskID = $(event.currentTarget).parent().parent().attr('data-info')
+        $('#divList').on('click', '.btnRemoveItem', (event) => {
+            let strTaskID = $(event.currentTarget).closest('.card').attr('data-info')
             $.ajax({
                 url: 'http://localhost:8000/task',
                 type: 'DELETE',
@@ -154,30 +159,15 @@
     })
 
     $(document).ready(() => {
-        $('#divList').on('click', '#btnChangeStatus', (event) => {
-            let strTaskID = $(event.currentTarget).parent().parent().attr('data-info')
+        $('#divList').on('click', '.btnChangeStatus', (event) => {
+            let strTaskID = $(event.currentTarget).closest('.card').attr('data-info')
             $.getJSON('http://localhost:8000/status?TaskID=' + strTaskID, (result) => {
                 let strStatus = result.status
                 $.ajax({
                     url: 'http://localhost:8000/task',
                     type: 'PATCH',
                     contentType: 'application/json',
-                    data: JSON.stringify({ TaskID: strTaskID, Status: strStatus }),
-                    success: (result) => {
-                        $(`#txtStatusInfo${strTaskID}`).text(`Status: ${strStatus}`)
-                        Swal.fire({
-                            title: 'Updated status!',
-                            text: result.message,
-                            icon: 'success'
-                        })
-                    },
-                    error: (result) => {
-                        Swal.fire({
-                            title: 'Error updating status!',
-                            text: result.message,
-                            icon: 'error'
-                        })
-                    }
+                    data: JSON.stringify({ TaskID: strTaskID, Status: strStatus })
                 })
             })
         })
